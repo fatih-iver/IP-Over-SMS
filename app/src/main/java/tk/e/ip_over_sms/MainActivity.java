@@ -16,7 +16,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 1;
 
-
     private static String PHONE_NUMBER = "905076319260";
     private static String EXCHANGE_RATES = "Exchange Rates";
     private static String RANDOM_QUOTE = "Random Quote";
@@ -80,6 +79,25 @@ public class MainActivity extends AppCompatActivity {
                 requestPermissions(permissions, PERMISSION_REQUEST_CODE);
 
             }
+
+            if (checkSelfPermission(Manifest.permission.RECEIVE_SMS)
+                    == PackageManager.PERMISSION_DENIED) {
+
+                String[] permissions = {Manifest.permission.RECEIVE_SMS};
+
+                requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+
+            }
+
+            if (checkSelfPermission(Manifest.permission.READ_SMS)
+                    == PackageManager.PERMISSION_DENIED) {
+
+                String[] permissions = {Manifest.permission.READ_SMS};
+
+                requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+
+            }
         }
     }
+
 }
