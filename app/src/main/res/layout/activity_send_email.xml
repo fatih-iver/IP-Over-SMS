@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".actions.SendEmailActivity">
+
+    <LinearLayout
+        android:layout_margin="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <EditText
+            android:id="@+id/editText_from"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="from"/>
+
+        <EditText
+            android:id="@+id/editText_to"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="to"/>
+
+        <EditText
+            android:id="@+id/editText_subject"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="subject"/>
+
+        <EditText
+            android:id="@+id/editText_content"
+            android:minLines="8"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|top"
+            android:hint="content"/>
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Send Email"/>
+
+        <Button
+            android:id="@+id/button_fillTestData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fill Test Data"/>
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
+
+</FrameLayout>

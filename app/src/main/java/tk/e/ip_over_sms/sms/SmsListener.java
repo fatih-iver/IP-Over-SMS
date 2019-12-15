@@ -13,10 +13,12 @@ public class SmsListener extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (Telephony.Sms.Intents.SMS_RECEIVED_ACTION.equals(intent.getAction())) {
+            StringBuilder messageBodyBuilder = new StringBuilder();
             for (SmsMessage smsMessage : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                String messageBody = smsMessage.getMessageBody();
-                Toast.makeText(context, "Message Received: " + messageBody, Toast.LENGTH_SHORT).show();
+                messageBodyBuilder.append(smsMessage.getMessageBody());
             }
+            Toast.makeText(context, "Message Received: " + messageBodyBuilder.toString(), Toast.LENGTH_SHORT).show();
+
         }
     }
 }
