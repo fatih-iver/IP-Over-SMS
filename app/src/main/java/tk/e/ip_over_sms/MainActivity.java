@@ -3,7 +3,9 @@ package tk.e.ip_over_sms;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -25,11 +27,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import tk.e.ip_over_sms.actions.ExchangeRatesActivity;
+import tk.e.ip_over_sms.actions.QuoteActivity;
 import tk.e.ip_over_sms.actions.SendEmailActivity;
+import tk.e.ip_over_sms.actions.TranslatorActivity;
 import tk.e.ip_over_sms.sms.IPMessage;
 import tk.e.ip_over_sms.sms.SmsConstants;
 import tk.e.ip_over_sms.sms.SmsReader;
@@ -50,9 +56,11 @@ public class MainActivity extends ListenerActivity {
     private RequestQueue requestQueue;
 
 
+    private Button button_healthCheck;
     private Button button_exchangeRates;
     private Button button_randomQuote;
     private Button button_sendEmail;
+    private Button button_translateText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +68,26 @@ public class MainActivity extends ListenerActivity {
         setContentView(R.layout.activity_main);
 
         requestQueue = Volley.newRequestQueue(this);
+
+        button_healthCheck = findViewById(R.id.button_healthCheck);
+
+        button_healthCheck.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                button_healthCheck.setEnabled(false);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(!button_healthCheck.isEnabled()){
+                            button_healthCheck.setEnabled(true);
+                            Toast.makeText(MainActivity.this, "Server is not responding!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }, 15000);
+                SmsSender.sendMultipartSms(SmsWriter.writeSms(SmsConstants.HEALTH_CHECK_REQUEST));
+                Toast.makeText(MainActivity.this, "Requested!", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         button_exchangeRates = findViewById(R.id.button_exchangeRates);
 
@@ -75,10 +103,7 @@ public class MainActivity extends ListenerActivity {
         button_randomQuote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, RANDOM_QUOTE, Toast.LENGTH_SHORT).show();
-                String Sms = SmsWriter.writeSms(SmsConstants.RANDOM_QUOTE_REQUEST);
-                SmsSender.sendMultipartSms(Sms);
-
+                startActivity(new Intent(MainActivity.this, QuoteActivity.class));
             }
         });
 
@@ -88,6 +113,16 @@ public class MainActivity extends ListenerActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, SendEmailActivity.class));
+
+            }
+        });
+
+        button_translateText = findViewById(R.id.button_translateText);
+
+        button_translateText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, TranslatorActivity.class));
 
             }
         });
@@ -138,8 +173,11 @@ public class MainActivity extends ListenerActivity {
 
         switch (type) {
             case SmsConstants.HEALTH_CHECK_REQUEST:
+                SmsSender.sendMultipartSms(phoneNumber, SmsWriter.writeSms(SmsConstants.HEALTH_CHECK_RESPONSE));
                 break;
             case SmsConstants.HEALTH_CHECK_RESPONSE:
+                button_healthCheck.setEnabled(true);
+                Toast.makeText(MainActivity.this, "Server is healthy!", Toast.LENGTH_SHORT).show();
                 break;
             case SmsConstants.EXCHANGE_RATES_REQUEST:
 
@@ -164,6 +202,8 @@ public class MainActivity extends ListenerActivity {
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        String message = SmsWriter.writeSms(SmsConstants.ERROR_OCCURED);
+                        SmsSender.sendMultipartSms(phoneNumber, message);
                     }
                 });
 
@@ -172,9 +212,54 @@ public class MainActivity extends ListenerActivity {
                 break;
             case SmsConstants.EXCHANGE_RATES_RESPONSE:
                 break;
-            case SmsConstants.RANDOM_QUOTE_REQUEST:
+            case SmsConstants.QUOTE_OF_THE_DAY_REQUEST:
+
+                Toast.makeText(this, "Quote of the Day Request", Toast.LENGTH_SHORT).show();
+
+                StringRequest stringRequest1 = new StringRequest(Request.Method.GET, "https://quotes.rest/qod.json",
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                JSONObject messageBodyAsJsonObject = new JSONObject();
+
+                                try {
+                                    messageBodyAsJsonObject.put(TYPE, SmsConstants.EXCHANGE_RATES_RESPONSE);
+
+                                    JSONObject paramsAsJson = new JSONObject();
+
+                                    JSONObject responseAsJson = new JSONObject(response);
+
+                                    JSONObject contentsAsJson = responseAsJson.getJSONObject("contents");
+
+                                    JSONArray quotesAsJson = contentsAsJson.getJSONArray("quotes");
+
+                                    JSONObject quoteAsJson = (JSONObject) quotesAsJson.get(0);
+
+                                    paramsAsJson.put("author", quoteAsJson.getString("author"));
+
+                                    paramsAsJson.put("quote", quoteAsJson.getString("quote"));
+
+                                    paramsAsJson.put("tags", quoteAsJson.getString("tags"));
+
+                                    messageBodyAsJsonObject.put(PARAMETERS, paramsAsJson);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                                SmsSender.sendMultipartSms(phoneNumber, messageBodyAsJsonObject.toString());
+
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        String message = SmsWriter.writeSms(SmsConstants.ERROR_OCCURED);
+                        SmsSender.sendMultipartSms(phoneNumber, message);
+                    }
+                });
+
+                requestQueue.add(stringRequest1);
                 break;
-            case SmsConstants.RANDOM_OUOTE_RESPONSE:
+            case SmsConstants.QUOTE_OF_THE_DAY_RESPONSE:
                 break;
             case SmsConstants.SEND_EMAIL_REQUEST:
                 Toast.makeText(this, "Send Email Request", Toast.LENGTH_SHORT).show();
@@ -205,9 +290,7 @@ public class MainActivity extends ListenerActivity {
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Map<String, String> params = new HashMap<>();
-                        params.put("result", "Delivery Failed!");
-                        String message = SmsWriter.writeSms(SmsConstants.SEND_EMAIL_RESPONSE, params);
+                        String message = SmsWriter.writeSms(SmsConstants.ERROR_OCCURED);
                         SmsSender.sendMultipartSms(phoneNumber, message);
                     }
                 }){
@@ -243,6 +326,54 @@ public class MainActivity extends ListenerActivity {
                 requestQueue.add(jsonObjectRequest);
                 break;
             case SmsConstants.SEND_EMAIL_RESPONSE:
+                break;
+            case SmsConstants.TEXT_TRANSLATE_REQUEST:
+
+                Toast.makeText(this, "Text Translate Request", Toast.LENGTH_SHORT).show();
+
+                String URL = new Uri.Builder().scheme("https")
+                        .authority("translate.yandex.net")
+                        .appendPath("api")
+                        .appendPath("v1.5")
+                        .appendPath("tr.json")
+                        .appendPath("translate")
+                        .appendQueryParameter("key", "trnsl.1.1.20191216T183152Z.67859a1bef2e73e9.29dff788998d87c6ab4c25a4fa4355fe0b638bab")
+                        .appendQueryParameter("text", ipMessage.getParams().get("q"))
+                        .appendQueryParameter("lang", ipMessage.getParams().get("sl") + "-" + ipMessage.getParams().get("tl"))
+                        .build()
+                        .toString();
+
+                StringRequest stringRequest2 = new StringRequest(Request.Method.GET, URL,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+
+                                JSONObject messageBodyAsJsonObject = new JSONObject();
+
+                                try {
+
+                                    messageBodyAsJsonObject.put(TYPE, SmsConstants.TEXt_TRANSLATE_RESPONSE);
+                                    messageBodyAsJsonObject.put(PARAMETERS, new JSONObject().put("t", new JSONObject(response).getJSONArray("text").getString(0)));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                                SmsSender.sendMultipartSms(phoneNumber, messageBodyAsJsonObject.toString());
+
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        String message = SmsWriter.writeSms(SmsConstants.ERROR_OCCURED);
+                        SmsSender.sendMultipartSms(phoneNumber, message);
+                    }
+                });
+
+                requestQueue.add(stringRequest2);
+
+                break;
+            case SmsConstants.TEXt_TRANSLATE_RESPONSE:
                 break;
             default:
                 break;

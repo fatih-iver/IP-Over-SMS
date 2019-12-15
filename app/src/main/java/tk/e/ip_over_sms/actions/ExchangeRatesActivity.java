@@ -2,13 +2,21 @@ package tk.e.ip_over_sms.actions;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.toolbox.JsonObjectRequest;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Set;
 
 import tk.e.ip_over_sms.ListenerActivity;
 import tk.e.ip_over_sms.R;
@@ -23,6 +31,7 @@ public class ExchangeRatesActivity extends ListenerActivity {
     private Button button;
     private ProgressBar progressBar;
     private TextView textView;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +41,7 @@ public class ExchangeRatesActivity extends ListenerActivity {
         button = findViewById(R.id.button);
         progressBar = findViewById(R.id.progressBar);
         textView = findViewById(R.id.textView);
+        listView =findViewById(R.id.listView);
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,15 +60,34 @@ public class ExchangeRatesActivity extends ListenerActivity {
     protected void handleMessage(String phoneNumber, String message) {
         button.setEnabled(true);
         progressBar.setVisibility(View.INVISIBLE);
-        try {
-            JSONObject messageAsJson = new JSONObject(message);
-            JSONObject paramsAsJson = messageAsJson.getJSONObject(SmsConstants.PARAMETERS);
-            paramsAsJson.getJSONObject("rates");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
         IPMessage ipMessage = SmsReader.readSms(message);
-        textView.setText(ipMessage.getParams().toString());
+        if(ipMessage.getType() == SmsConstants.ERROR_OCCURED){
+            Toast.makeText(ExchangeRatesActivity.this, "An error occured!", Toast.LENGTH_SHORT).show();
+        } else {
+            //textView.setText(ipMessage.getParams().toString());
+
+            String ratesAsString = ipMessage.getParams().get("rates");
+            try {
+                JSONObject ratesAsJson = new JSONObject(ratesAsString);
+
+                Iterator<String> iterator = ratesAsJson.keys();
+
+                ArrayList<String> items = new ArrayList<>();
+
+                while(iterator.hasNext()) {
+                    String key = iterator.next();
+                    items.add("1 " + key + " = " + String.format("%.6f", (1.0 / ratesAsJson.getDouble(key))) + " TRY");
+                }
+
+                ArrayAdapter<String> itemsAdapter =
+                        new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
+                listView.setAdapter(itemsAdapter);
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

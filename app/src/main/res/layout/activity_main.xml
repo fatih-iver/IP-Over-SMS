@@ -7,6 +7,20 @@
     tools:context=".MainActivity">
 
     <Button
+        android:id="@+id/button_healthCheck"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="8dp"
+        android:background="@color/colorPrimary"
+        android:text="Health Check"
+        android:textSize="18sp"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@id/button_exchangeRates"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
         app:layout_constraintVertical_bias="0.375"
         android:id="@+id/button_exchangeRates"
         android:layout_width="match_parent"
@@ -29,7 +43,7 @@
         android:layout_marginHorizontal="8dp"
         android:layout_marginVertical="8dp"
         android:background="@color/colorPrimary"
-        android:text="Random Quote"
+        android:text="Quote of the Day"
         android:textSize="18sp"
         android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
@@ -49,6 +63,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/button_randomQuote" />
+
+    <Button
+        android:id="@+id/button_translateText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="8dp"
+        android:background="@color/colorPrimary"
+        android:text="Translate Text"
+        android:textSize="18sp"
+        android:textColor="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button_sendEmail" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

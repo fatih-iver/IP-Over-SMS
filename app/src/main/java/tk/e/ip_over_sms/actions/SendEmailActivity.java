@@ -109,7 +109,13 @@ public class SendEmailActivity extends ListenerActivity {
     protected void handleMessage(String phoneNumber, String message) {
         button.setEnabled(true);
         progressBar.setVisibility(View.GONE);
+
         IPMessage ipMessage = SmsReader.readSms(message);
-        Toast.makeText(SendEmailActivity.this, ipMessage.getParams().get("result"), Toast.LENGTH_LONG).show();
+
+        if(ipMessage.getType() == SmsConstants.ERROR_OCCURED){
+            Toast.makeText(SendEmailActivity.this, "An error occured!", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(SendEmailActivity.this, ipMessage.getParams().get("result"), Toast.LENGTH_LONG).show();
+        }
     }
 }

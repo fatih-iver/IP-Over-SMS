@@ -57,13 +57,11 @@ public abstract class ListenerActivity extends AppCompatActivity {
     }
 
 
+
     @Override
     protected void onStop() {
+        unregisterReceiver(broadcastReceiver);
         super.onStop();
-        if(broadcastReceiver != null){
-            unregisterReceiver(broadcastReceiver);
-            broadcastReceiver = null;
-        }
     }
 
     protected abstract void handleMessage(String phoneNumber, String message);
